@@ -29,7 +29,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-9=m=znp!5b&u^8p56*b5d
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 
 
 # Application definition
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'stdimage',
+    'django_htmx',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
+
 ]
 
 ROOT_URLCONF = 'tibillet_kiosk.urls'
@@ -113,9 +118,9 @@ AUTH_USER_MODEL = 'kiosk_core.CustomUser'
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Paris'
 
 USE_I18N = True
 

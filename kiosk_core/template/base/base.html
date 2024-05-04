@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.5.2.3.min.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Cashless kiosk</title>
+
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+<div>
+    {% block content %}
+    {% endblock content %}
+</div>
+{% block script %}
+{% endblock script %}
+
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="{% static 'js/hyperscript.0.9.11.min.js' %}" type="application/javascript"></script>
+<script src="{% static 'js/htmx.min.1.9.7.js' %}" type="application/javascript"></script>
+<script src="{% static 'bootstrap/bootstrap.5.2.3.bundle.min.js' %}" type="application/javascript"></script>
+
+
+</body>
+</html>
