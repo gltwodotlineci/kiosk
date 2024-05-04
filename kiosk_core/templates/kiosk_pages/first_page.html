@@ -4,10 +4,12 @@
 {% block content %}
     <div class="center-text" id="main_page">
         <h1>Welcome, please scan your wristband to check or refille your wallet</h1>
+   
+    
     </div>
-    <input type="text" id="given_card" on_input="listen_card()"/>
-    <button type="submit"
-            hx-submit="/show/"
+    <input type="text" id="given_card" on_input="listen_card()" name="number"/>
+    <button
+            hx-post="/show"
             hx-include="#given_card"
             hx-trigger="click"
             hx-target="#main_page"
