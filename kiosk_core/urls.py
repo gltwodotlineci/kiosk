@@ -9,5 +9,6 @@ urlpatterns = [
     path('', index, name='index'),
     path('api/', include(router.urls)),
     path('recharge/', recharge, name='recharge'),
-    path('show/', show, name='show')
+    path('show/', show, name='show'),
+    # path('paiment/', paiment, name='paiment'),
 ]

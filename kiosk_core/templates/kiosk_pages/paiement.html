@@ -1,0 +1,15 @@
+{% block content %}
+    <div id="allPage">
+        <h2>You can add your cash at the bill validator.</h2>
+        <input type="hidden" id="uuidFlask" name="uuid"/>
+        <input type="hidden" id="totalFlask" name="total"/>
+        <div
+            hx-post="http://127.0.0.1:6979/paiment/"
+            hx-include="#allPage"
+            hx-trigger="load"
+        >
+        
+        </div>
+    </div>
+    
+{% endblock content %}
