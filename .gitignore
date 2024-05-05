@@ -4,6 +4,7 @@ __pycache__/
 .idea
 /tempo
 node_modules/
+popdb.py
 
 # Environments
 .env

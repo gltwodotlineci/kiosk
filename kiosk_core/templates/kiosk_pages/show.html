@@ -3,28 +3,57 @@
 
 {% block content %}
     <div class="center-text">
-        <div class="row">
-            <div class="col-6">
-                <h3>You have {{ amount }} on your wallet. </h3>
+        <div class="col-12">
+        
+            <div class="row">
+                <div class="col-12">
+                    <h3>You have {{ card.amount }} € on your wallet. </h3>
+              
+                    <h3>Choose the values that you want to add to your wallet</h3>
+                </div>
             </div>
-            <div class="col-6">
-                <h3>Choose the values that you want to add to your wallet</h3>
-            </div>
-        </div>
+            <div class="row">    
  
-        <div class="row">
-            <div class="col-5">
-                <button type="button" class="btn btn-success" value="5"> 5 €</button>
+                <div class="col-6">
+                    <button type="button" class="btn btn-success" value="5"
+                    _="on click increment $total by 5 then put it into the next <output/>"
+                    > 5 €</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-success" value="10"
+                    _="on click increment $total by 10 then put it into the next <output/>"
+                    > 10 €</button>
+                </div>
+         
+                <div class="col-6">
+                    <button type="button" class="btn btn-success" value="20"
+                    _="on click increment $total by 20 then put it into the next <output/>"
+                    > 20 €</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-success" value="50"
+                    _="on click increment $total by 50 then put it into the next <output/>"
+                    > 50 €</button>
+                </div>
             </div>
-            <div class="col-5">
-                <button type="button" class="btn btn-success" value="10"> 10 €</button>
+            
+            <div class="row">
+                <div class="col-4">
+                    <h4>Total: <output id="total_dj" value="{{ total_dj }}" name="total"> {{ total }}</output></h4> 
+                </div>
+                <div class="col-4">
+                    <button type="button" class="btn btn-success" 
+                            hx-get="recharge/"
+                            hx-include="#total_dj"
+                            hx-trigger="click"
+                            hx-target="#above_return"
+                    > ADD TO YOUR WALLET</button>
+                    <div id="above_return"></div>
+                </div>
             </div>
-     
-            <div class="col-5">
-                <button type="button" class="btn btn-success" value="20"> 20 €</button>
-            </div>
-            <div class="col-5">
-                <button type="button" class="btn btn-success" value="50"> 50 €</button>
+            
+            <div>
+                <a class="btn btn-primary" href="/">Return</a>
             </div>
         </div>
         
