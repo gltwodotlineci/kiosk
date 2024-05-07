@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # CORS cross-origin-ressources-sharing
+    "corsheaders",
     'kiosk_core',
     'solo',
     'django_extensions',
@@ -52,15 +54,39 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+]
+# giving to django the url that it will authorize firefox
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:6997",
+    "http://127.0.0.1:6997",
+]
 
+CORS_ALLOW_METHODS = ['POST']
+
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+)
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:6997",
+    "http://127.0.0.1:6997",
 ]
 
 ROOT_URLCONF = 'tibillet_kiosk.urls'
