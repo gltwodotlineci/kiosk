@@ -18,6 +18,7 @@ class CardValidator(serializers.Serializer):
 class AmouuntValidator(serializers.Serializer):
     uuid = serializers.UUIDField(required=True)
     total = serializers.CharField(required=True)
+    device_confirm_paiment = serializers.CharField(required=False)
 
     def validate_uuid(self, value):
         try:

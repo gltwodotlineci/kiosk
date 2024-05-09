@@ -9,5 +9,5 @@ class CustomUser(AbstractUser):
 # Creating a card model
 class Card(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    number = models.CharField(max_length=3, unique=True, verbose_name='Number')
-    amount = models.DecimalField(max_digits=8, decimal_places=2, default=0, verbose_name='amount')
+    tag_id = models.CharField(max_length=3, unique=True, verbose_name='tag id')
+    amount = models.IntegerField(default=0, verbose_name='amount')

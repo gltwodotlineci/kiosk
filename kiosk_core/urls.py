@@ -1,5 +1,5 @@
 from django.urls import path, include
-from kiosk_core.views import index, show, CardViewset, recharge
+from kiosk_core.views import index, show, CardViewset, recharge, stripe_paiment
 from rest_framework import routers
 router = routers.DefaultRouter()
 
@@ -10,5 +10,5 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('recharge/', recharge, name='recharge'),
     path('show/', show, name='show'),
-    # path('paiment/', paiment, name='paiment'),
+    path('stripe_paiment/', stripe_paiment, name='stripe_paiment'),
 ]
