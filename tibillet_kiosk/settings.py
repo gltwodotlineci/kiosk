@@ -67,10 +67,8 @@ MIDDLEWARE = [
 # giving to django the url that it will authorize firefox
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "http://localhost:6997",
-    "http://127.0.0.1:6997",
+    "http://127.0.0.2:6997",
 ]
 
 CORS_ALLOW_METHODS = ['POST']
@@ -86,7 +84,7 @@ CORS_ALLOW_HEADERS = (
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:6997",
-    "http://127.0.0.1:6997",
+    "http://127.0.0.2:6997",
 ]
 
 ROOT_URLCONF = 'tibillet_kiosk.urls'

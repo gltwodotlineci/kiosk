@@ -3,8 +3,8 @@ from rest_framework import serializers
 
 # Validate the number card recived by the miniserver
 class CardValidator(serializers.Serializer):
-    number = serializers.CharField()
 
+    tag_id = serializers.CharField()
     # check if the given card is right
     def validate_number(self, value):
         try:

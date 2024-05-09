@@ -2,17 +2,90 @@
 {% load static %}
 
 {% block content %}
-    <div class="center-text" id="main_page">
-        <h1>Welcome, please scan your wristband to check or refille your wallet</h1>
-    </div>
-
+    <div id="mainPage">
     
-    <input type="text" id="given_card" on_input="listen_card()" name="number"/>
-    <button
-            hx-post="api/card/scan/"
-            hx-include="#given_card"
-            hx-trigger="click"
-            hx-target="#main_page"
-            >check</button>
+        
+
+        <div class="center-text" id="main_page">
+            <div class="row">
+                <div class="col-12">
+                    {{ message }}
+                </div>
+                <div class="col-12">
+                    <h1>Welcome, please scan your wristband to check or refille your wallet</h1>
+                </div>
+            </div>
+        </div>
+
+
+        <div
+             hx-get="http://127.0.0.2:6997/scan_nfc/"
+             hx-trigger="load  delay:2s"
+             hx-target="this"
+             hx-swap="outerHTML"
+        >
+        </div>
+
+    </div>
+         
+    
+    
+{#    <input type="text" id="given_card" on_input="listen_card()" name="number"/>#}
+{#    <button#}
+{#            hx-post="api/card/scan/"#}
+{#            hx-include="#given_card"#}
+{#            hx-trigger="click"#}
+{#            hx-target="#main_page"#}
+{#            >check</button>#}
+{#    #}
+{#    #}
+    
+
+<script>
+{#function fetchCardData() {#}
+{#    // Function to fetch card data and handle specific status codes#}
+{#    function fetchData(url) {#}
+{#        return fetch(url)#}
+{#          .then(response => {#}
+{#                if (response.status === 404) {#}
+{#                    // If the status is 404, retry the fetch#}
+{#                    setTimeout(fetchCardData, 1000);#}
+{#                    return fetchData(url);#}
+{#                } else if (response.status === 200) {#}
+{#                    // If the status is 200, extract the card number from the response#}
+{#                    return response.json();#}
+{#                } else {#}
+{#                    // Handle other status codes as needed#}
+{#                    throw new Error('Unexpected status code');#}
+{#                }#}
+{#            })#}
+{#          .catch(error => {#}
+{#                console.error('Error fetching card data:', error);#}
+{#                throw error; // Rethrow to handle in the calling function#}
+{#            });#}
+{#    }#}
+{##}
+{#    // Main function to fetch card data and process it#}
+{#    return fetchData('http://127.0.0.2:6997/scan_nfc/')#}
+{#      .then(data => {#}
+{#            // Make a POST request to http://127.0.0.1:8000/api/card/scan/ with the card number#}
+{#            return fetch('http://127.0.0.1:8000/api/card/scan/', {#}
+{#                method: 'POST',#}
+{#                headers: {#}
+{#                    'Content-Type': 'application/json',#}
+{#                },#}
+{#                body: JSON.stringify({tag_id: data.card_scanned}),#}
+{#            });#}
+{#        })#}
+{#      .then(response => response.json())#}
+{#      .then(data => console.log(data))#}
+{#      .catch(error => console.error('Error processing card data:', error));#}
+{##}
+{#// Call the function to start the process#}
+{#fetchCardData();#}
+</script>
+
+
+
 
 {% endblock content %}
