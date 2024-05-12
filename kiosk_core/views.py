@@ -2,26 +2,44 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from kiosk_core.serializers import CardValidator, CardSerializer, AmouuntValidator
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from kiosk_core.models import Card
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse
+from kiosk_core.models import Card, ReededCardFromNfc
+from django.utils import timezone
+
+
+# saving the scanned data:
+@csrf_exempt
+def saving_scanned_card(request):
+    print("Entering")
+    if request.method == 'POST':
+        scanned_card_id = request.POST.get('scanded_tag_id')
+        ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
+        return HttpResponse(scanned_card_id)
 
 
 # First page
 def index(request):
-    return render(request, 'kiosk_pages/first_page.html',
+    return render(request, 'kiosk_pages/first_page.html')
+
+
+def index_bis(request):
+    render_repetly = render(request, 'kiosk_pages/first_page.html',
             {})
 
+    # Avoid non existence of object ReededCardFromNfc
+    try:
+        last_scanned = ReededCardFromNfc.objects.all().order_by('created_at').last()
+    except ReededCardFromNfc.DoesNotExist:
+        return render_repetly
 
-# Page of interaction of card user and filling values
-def show(request):
-    return render(request, 'kiosk_pages/show.html',{})
+    # Check if the last card has been scaned the last 2 seconds
+    if last_scanned.created_at >= timezone.now() - timezone.timedelta(seconds=2):
+        return render(request, 'kiosk_pages/send_card.html'
+                ,{'tag_id':last_scanned.reeded_card})
 
-
-#search the card number with json from the pi server (flask)
-def reciving_card_number(request):
-    pass
+    return render(request, 'kiosk_pages/first_page_bis.html')
 
 
 
