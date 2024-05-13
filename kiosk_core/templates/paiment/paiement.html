@@ -12,13 +12,20 @@
 
 
             <div class="col-10"
-                 hx-post="http://127.0.0.2:6997/wait_device_paiment/"
+                 hx-post="recharge_paiment_pg/"
                  hx-include="this"
                  hx-trigger="load delay:4s"
                  hx-target="this"
             >
-                <input type="hidden" id="uuidFlask" name="uuid" value="{{ uuid }}"/>
-                <input type="hidden" id="totalFlask" name="total" value="{{ total }}"/>
+                <input type="hidden" id="uuidPaiment" name="uuid" value="{{ uuid }}"/>
+                <input type="hidden" id="totalPaiment" name="total" value="{{ total }}"/>
+                <input type="hidden" id="choiceAmount" name="choice_amount" value="{{ paiment_choice.choice_amount }}"/>
+                <input type="hidden" id="deviceAmount" name="device_amount" value="{{ paiment_choice.device_amount }}"/>
+
+                
+                
+{#                <input type="hidden" id="uuidFlask" name="uuid" value="{{ uuid }}"/>#}
+{#                <input type="hidden" id="totalFlask" name="total" value="{{ total }}"/>#}
             </div>
 
         </div>

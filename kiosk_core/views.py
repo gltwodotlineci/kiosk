@@ -5,7 +5,7 @@ from kiosk_core.serializers import CardValidator, CardSerializer, AmouuntValidat
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
-from kiosk_core.models import Card, ReededCardFromNfc
+from kiosk_core.models import Card, ReededCardFromNfc, Paiment_choice
 from django.utils import timezone
 
 
@@ -17,6 +17,7 @@ def saving_scanned_card(request):
         scanned_card_id = request.POST.get('scanded_tag_id')
         ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
         return HttpResponse(scanned_card_id)
+
 
 
 # First page
@@ -75,7 +76,9 @@ class CardViewset(viewsets.ViewSet):
             return HttpResponseRedirect('/')
         uuid = choosed_data.validated_data.get('uuid')
         total = choosed_data.validated_data.get('total')
-        context = {'uuid': uuid, 'total': total}
+        card = Card.objects.get(uuid=uuid)
+        paiment_choice = Paiment_choice.objects.create(choice_amount=total,card_uuid=card)
+        context = {'uuid': uuid, 'total': total, 'paiment_choice': paiment_choice}
         return render(request, 'paiment/paiement.html', context=context)
 
 
@@ -106,6 +109,17 @@ class CardViewset(viewsets.ViewSet):
                           {'message':message})
 
 
+# This method will recharge paiment page
+def recharge_paiment_pg(request):
+    uuid = request.POST.get('uuid')
+    total = request.POST.get('total')
+    choice_amount = request.POST.get('choice_amount')
+    devic_amount = request.POST.get('devic_amount')
+    context = {'uuid': uuid, 'total': total,
+               'choice_amount': choice_amount, 'devic_amount': devic_amount}
+    return render(request, 'paiment/recharge_paiment_pg.html',context=context)
+
+
 
 # recharging value
 def recharge(request):
@@ -120,3 +134,5 @@ def recharge(request):
 # Stripe ----------------
 def stripe_paiment(request):
     return render(request, 'paiment/stripe_paiment.html')
+
+
