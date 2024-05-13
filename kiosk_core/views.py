@@ -12,13 +12,20 @@ from django.utils import timezone
 # saving the scanned data:
 @csrf_exempt
 def saving_scanned_card(request):
-    print("Entering")
     if request.method == 'POST':
         scanned_card_id = request.POST.get('scanded_tag_id')
         ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
         return HttpResponse(scanned_card_id)
 
+@csrf_exempt
+def given_bill(request):
+    print('____________________')
+    if request.method == 'POST':
+        given_bill = request.POST.get('bill')
 
+    print("Given Bill: ", given_bill)
+
+    return HttpResponse(given_bill)
 
 # First page
 def index(request):
