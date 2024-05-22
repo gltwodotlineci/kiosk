@@ -20,12 +20,13 @@ class ReededCardFromNfc(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='created at')
 
 
-class Paiment_choice(models.Model):
+class PaimentChoice(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False, unique=True)
     card_uuid = models.ForeignKey(Card, on_delete=models.PROTECT, related_name='paiment_choice',verbose_name='card uuid')
     choice_amount = models.IntegerField(verbose_name='choice amount')
     device_amount = models.IntegerField(default=0, verbose_name='device amount')
     rest = models.IntegerField(default=0, verbose_name='rest')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='created at')
     # methoc that will calculate the difference between amount choice and device
     def calcule_amount_diff(self):
         if self.device_amount > self.choice_amount:

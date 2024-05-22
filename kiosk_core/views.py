@@ -1,21 +1,27 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from kiosk_core.serializers import CardValidator, CardSerializer, AmouuntValidator
+from kiosk_core.serializers import CardValidator, CardSerializer, AmouuntValidator, BillValidator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
-from kiosk_core.models import Card, ReededCardFromNfc, Paiment_choice
+from kiosk_core.models import Card, ReededCardFromNfc, PaimentChoice
 from django.utils import timezone
 
 
-# saving the scanned data:
-@csrf_exempt
-def saving_scanned_card(request):
-    if request.method == 'POST':
-        scanned_card_id = request.POST.get('scanded_tag_id')
-        ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
-        return HttpResponse(scanned_card_id)
+# First page and the recharge of the first page if no card has been scanned
+def index(request):
+    last_scanned = ReededCardFromNfc.objects.all().order_by('created_at').last()
+    if last_scanned:
+        # Check if the last card has been scaned the last 2 seconds
+        if last_scanned.created_at >= timezone.now() - timezone.timedelta(seconds=2):
+            return render(request, 'kiosk_pages/send_card.html'
+                   ,{'tag_id': last_scanned.reeded_card,
+                             })
+
+    return render(request, 'kiosk_pages/first_page.html')
+
+
 
 @csrf_exempt
 def given_bill(request):
@@ -27,31 +33,17 @@ def given_bill(request):
 
     return HttpResponse(given_bill)
 
-# First page
-def index(request):
-    return render(request, 'kiosk_pages/first_page.html')
-
-
-def index_bis(request):
-    render_repetly = render(request, 'kiosk_pages/first_page.html',
-            {})
-
-    # Avoid non existence of object ReededCardFromNfc
-    try:
-        last_scanned = ReededCardFromNfc.objects.all().order_by('created_at').last()
-    except ReededCardFromNfc.DoesNotExist:
-        return render_repetly
-
-    # Check if the last card has been scaned the last 2 seconds
-    if last_scanned.created_at >= timezone.now() - timezone.timedelta(seconds=2):
-        return render(request, 'kiosk_pages/send_card.html'
-                ,{'tag_id':last_scanned.reeded_card})
-
-    return render(request, 'kiosk_pages/first_page_bis.html')
-
 
 
 class CardViewset(viewsets.ViewSet):
+    # save scanded card:
+    @action(detail=False, methods=['POST'])
+    def save_scanded_card(self, request):
+        scanned_card_id = request.POST.get('scanded_tag_id')
+        ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
+        return HttpResponse(scanned_card_id)
+
+
     # post from card scan /
     @action(detail=False, methods=['POST'])
     def scan(self, request):
@@ -72,6 +64,25 @@ class CardViewset(viewsets.ViewSet):
                       {'card': card})
 
 
+    # On this part we gather the total of amount selected
+    @action(detail=False, methods=['POST'])
+    def recharge(self,request):
+        selected_data = AmouuntValidator(data=request.data)
+        # If it happens that the uuid or the total is wrong
+        if not selected_data.is_valid():
+            message = "Error, please try again!"
+
+            return render(request, 'kiosk_pages/first_page.html',
+                          {'message':message})
+
+        uuid = selected_data.validated_data.get('uuid')
+        total = selected_data.validated_data.get('total')
+
+        return render(request,
+        'kiosk_pages/recharge.html',
+        {'total':total, 'uuid': uuid})
+
+
     # post from paiment
     @action(detail=False, methods=['POST'])
     def paiment(self, request):
@@ -84,9 +95,46 @@ class CardViewset(viewsets.ViewSet):
         uuid = choosed_data.validated_data.get('uuid')
         total = choosed_data.validated_data.get('total')
         card = Card.objects.get(uuid=uuid)
-        paiment_choice = Paiment_choice.objects.create(choice_amount=total,card_uuid=card)
+        paiment_choice = PaimentChoice.objects.create(choice_amount=total,card_uuid=card)
         context = {'uuid': uuid, 'total': total, 'paiment_choice': paiment_choice}
         return render(request, 'paiment/paiement.html', context=context)
+
+
+    # Amoount of bills recived from the device
+    @action(detail=False, methods=['POST'])
+    def devices_bill(self,request):
+        paiment_choice = PaimentChoice.objects.all().order_by('created_at').last()
+        bill_data = BillValidator(data=request.data)
+        if not bill_data.is_valid():
+            message = ("Sorry error device, please take your bill from the device "
+                       "and, restart again please")
+            return render(request, 'kiosk_pages/first_page.html'
+                          ,{'message':message},)
+
+        amount_device = bill_data.validated_data.get('bill')
+        paiment_choice.device_amount += amount_device
+        paiment_choice.save()
+        return HttpResponse(paiment_choice)
+
+
+    @action(detail=False, methods=['GET'])
+    def return_device(self,request):
+        paiment_complete = False
+        paiment_choice = PaimentChoice.objects.all().order_by('created_at').last()
+        rest = paiment_choice.choice_amount - paiment_choice.device_amount
+        if rest <= 0:
+            paiment_complete = True
+            rest_device = False
+            if rest < 0:
+                rest_device = True
+                rest = paiment_choice.device_amount - paiment_choice.choice_amount
+            return render(request,
+            'paiment/device_bills.html',
+            {'paiment_complete': paiment_complete,
+             'rest_device': rest_device, 'rest': rest})
+        return render(request,
+        'paiment/device_bills.html',
+    {'paiment_choice': paiment_choice, 'rest': rest})
 
 
     @action(detail=False, methods=['POST'])
@@ -127,15 +175,14 @@ def recharge_paiment_pg(request):
     return render(request, 'paiment/recharge_paiment_pg.html',context=context)
 
 
-
-# recharging value
-def recharge(request):
-    if request.method == 'GET':
-        total = request.GET.get('total')
-        uuid = request.GET.get('uuid')
-    return render(request,
-    'kiosk_pages/recharge.html',
-    {'total':total, 'uuid': uuid})
+# # recharging value
+# def recharge(request):
+#     if request.method == 'POST':
+#         total = request.POST.get('total')
+#         uuid = request.POST.get('uuid')
+#     return render(request,
+#     'kiosk_pages/recharge.html',
+#     {'total':total, 'uuid': uuid})
 
 
 # Stripe ----------------

@@ -34,3 +34,15 @@ class CardSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class BillValidator(serializers.Serializer):
+    bill = serializers.IntegerField()
+
+    def validate_bill(self, value):
+        try:
+            value in [5,10,20,50]
+            return value
+        except ValueError: # We have to check how to send the error to
+            # the device ...
+            raise serializers.ValidationError("Bill error")
+
+
