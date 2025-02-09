@@ -12,6 +12,17 @@
 
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<header>
+    <div class="logo-header blue lighten-3">logo Tibillet</div>
+        <button
+          id="toggleDarkModeBtn"
+          class="z-depth-4 white-text waves-effect waves-light btn-toggle-dark-mode"
+          onclick="toggleDarkMode()"
+        >
+          Night Mode
+        </button>
+    
+</header>
 
 <div>
     {% block content %}

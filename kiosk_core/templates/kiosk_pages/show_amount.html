@@ -1,0 +1,117 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/845b24a10d.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="container" id="rechargePg">
+      <header>
+        <div class="logo-header blue lighten-3">logo Tibillet</div>
+        <button
+          id="toggleDarkModeBtn"
+          class="z-depth-4 waves-effect waves-light btn-toggle-dark-mode"
+          onclick="toggleDarkMode()"
+        ></button>
+      </header>
+      <div class="main-center">
+        <section>
+          <div class="card-panel z-depth-1 blue lighten-5">
+            <span class="text-color">Your Actual sold is {{card.amount}} €.</span>
+
+            <span class="text-color"
+              >Please choose the values that you want to add to your wallet :</span
+            >
+          </div>
+          <div class="row amounts">
+            <div class="col s12 m3">
+              <button
+                class="btn-large z-depth-4 waves-effect waves-light"
+                id="amount5"
+                onclick="selectAmount(5)"
+              >
+                + 5€
+              </button>
+            </div>
+            <div class="col s12 m3">
+              <button
+                class="btn-large z-depth-4 waves-effect waves-light"
+                id="amount10"
+                onclick="selectAmount(10)"
+              >
+                + 10€
+              </button>
+            </div>
+            <div class="col s12 m3">
+              <button
+                class="btn-large z-depth-4 waves-effect waves-light"
+                id="amount20"
+                onclick="selectAmount(20)"
+              >
+                + 20€
+              </button>
+            </div>
+            <div class="col s12 m3">
+              <button
+                class="btn-large z-depth-4 waves-effect waves-light"
+                id="amount50"
+                onclick="selectAmount(50)"
+              >
+                + 50€
+              </button>
+            </div>
+          </div>
+          <div class="align-button">
+              <form method="POST" action="http://127.0.0.1:8000/api/card/recharge/" onsubmit="return giveAmount()">
+                  <input type="hidden" id="sendAmount" name="amount">
+                  <input type="hidden" value="{{ card.uuid }}" name="uuid" id="uuid">
+                  <button onclick="validateAmount()" type="submit"
+                      class="btn-cbcash z-depth-4 btn-validate waves-effect waves-light"
+                  > Confirme <span id="totalAmount">0€</span>
+                </button>
+              </form>
+          </div>
+          <div class="clean">
+            <button
+              class="btn-clear btn-floating-clear waves-effect waves-light"
+              onclick="clearAmount()"
+            >
+              <p>Effacer</p>
+            </button>
+          </div>
+        </section>
+      </div>
+      <footer>
+        <div class="logo-footer blue lighten-3">logo Partener</div>
+      </footer>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    
+    <script src="../../static/js/main.js"></script>
+  </body>
+</html>
+
+
+
+{% endblock content %}
+

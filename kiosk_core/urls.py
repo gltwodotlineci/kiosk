@@ -1,6 +1,6 @@
 from django.urls import path, include
-from kiosk_core.views import (index, CardViewset,
-                stripe_paiment, recharge_paiment_pg, given_bill)
+from kiosk_core.views import (CardViewset, home, error_scan,
+                              stripe_paiment, recharge_paiment_pg, given_bill, scan_page)
 from rest_framework import routers
 router = routers.DefaultRouter()
 
@@ -8,7 +8,10 @@ router.register(r'card', CardViewset, basename='scan')
 
 
 urlpatterns = [
-    path('', index, name='index'),
+    path('', home, name='home'),
+    path('scanpage', scan_page, name='index'),
+
+    path('error_scan', error_scan, name='error_scan'),
     path('api/', include(router.urls)),
     path('recharge_paiment_pg/', recharge_paiment_pg, name='recharge_paiment_pg'),
     path('given_bill/', given_bill, name='given_bill'),

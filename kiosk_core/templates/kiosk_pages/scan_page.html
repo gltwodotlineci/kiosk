@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div id="mainPage1">
+        <div id="mainPage2" hx-get="/" hx-trigger="load delay:45s">
+            <div class="main-center">
+            <section>
+              <div class="card-panel-blink card-panel z-depth-1 blue lighten-5">
+                <span class="" id="message"></span>
+              </div>
+            </section>
+          </div>
+        </div>
+    </div>
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="../../static/js/index.js"></script>    
+    
+<script>
+    const socket = new WebSocket('ws://localhost:8001/', 'echo-protocol');
+    socket.onopen = () => {
+        console.log("Connection OK...")
+        socket.send("reed_tag_id")
+    }
+    socket.onmessage = function(event) {
+    try {
+        // Convert the incoming message to JSON if needed
+        const data = JSON.parse(event.data);
+        if (data.message === 'Found'){
+            // posting tag_id to recharge page
+            fetch("http://127.0.0.1:8000/api/card/charg_card/", {
+                method: "POST",
+                body: JSON.stringify({
+                    tag_id: data.tag_id
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+                })
+                .then(response => response.json())
+                .then(data2 => {
+                    document.getElementById('mainPage1').innerHTML = data2.html;
+                })
+            } else if (data.message === 'NotFound') {
+            fetch("http://127.0.0.1:8000/error_scan")
+                .then(response => response.json())
+                .then(data3 => {
+                    document.getElementById('mainPage1').innerHTML = data3.html;
+                })
+        }
+        
+    } catch (error) {
+        console.error('Error parsing message:', error);
+        console.log('Raw message:', event.data);
+    }
+};
+
+// function send_nfc(){
+//     document.getElementById('tagid').addEventListener('input', function(e) {
+//     const nfc_nb = e.target.value;
+//     socket.send(nfc_nb)
+//     console.log("Nfc nb", nfc_nb);
+// });
+// }
+</script>
+    
+
+{% endblock content %}
+

@@ -1,26 +1,41 @@
+import json
+from crypt import methods
+from http.client import responses
+
 from django.shortcuts import render
+from django.template.loader import render_to_string
+from django_browser_reload.views import message
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from kiosk_core.serializers import CardValidator, CardSerializer, AmouuntValidator, BillValidator
+from kiosk_core.serializers import AmouuntValidator, BillValidator
+from kiosk_core.validator import TagIdValidator, CardValidator, ChargeValidator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from kiosk_core.models import Card, ReededCardFromNfc, PaimentChoice
+from django.http import JsonResponse
 from django.utils import timezone
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+
+def home(request):
+    return  render(request, 'kiosk_pages/home.html', {})
+
+
 # First page and the recharge of the first page if no card has been scanned
-def index(request):
-    last_scanned = ReededCardFromNfc.objects.all().order_by('created_at').last()
-    if last_scanned:
-        # Check if the last card has been scaned the last 2 seconds
-        if last_scanned.created_at >= timezone.now() - timezone.timedelta(seconds=2):
-            return render(request, 'kiosk_pages/send_card.html'
-                   ,{'tag_id': last_scanned.reeded_card,
-                             })
+def scan_page(request):
 
-    return render(request, 'kiosk_pages/first_page.html')
+    return render(request, 'kiosk_pages/scan_page.html')
 
+
+# If wrong card scaned
+def error_scan(request):
+    render_template = render_to_string(
+            'kiosk_pages/card_error.html'
+    )
+    return JsonResponse({'html': render_template})
 
 
 @csrf_exempt
@@ -34,7 +49,6 @@ def given_bill(request):
     return HttpResponse(given_bill)
 
 
-
 class CardViewset(viewsets.ViewSet):
     # save scanded card:
     @action(detail=False, methods=['POST'])
@@ -44,42 +58,53 @@ class CardViewset(viewsets.ViewSet):
         return HttpResponse(scanned_card_id)
 
 
-    # post from card scan /
+    # post from card scan
     @action(detail=False, methods=['POST'])
     def scan(self, request):
-        card_data = CardValidator(data=request.data)
+        tag_id_validator = TagIdValidator(data=request.data)
+        response = {'message': "Failed", 'tag_id': ''}
         # check if the scaned card doesn't exist or is unvalid
-        if not card_data.is_valid():
-            message = "Card error, please try again!"
+        if not tag_id_validator.is_valid():
+            return HttpResponse(json.dumps(response))
 
-            return render(request, 'kiosk_pages/first_page.html',
-                          {'message':message})
+        # send the tag_id if the card exists
+        tag_id = tag_id_validator.validated_data.get('tag_id')
+        response['message'] = "Found"
+        response['tag_id'] = tag_id
+        return HttpResponse(json.dumps(response))
 
-        card_number = card_data.validated_data.get('tag_id')
-        card_obj = Card.objects.get(tag_id=card_number)
-        card_serialized = CardSerializer(card_obj, many=False)
-        card = card_serialized.data
-        return render(request,
-                      'kiosk_pages/show.html',
-                      {'card': card})
+
+    # sending to charging card page
+    @action(detail=False, methods=['POST'])
+    def charg_card(self, request):
+        cad_validator = CardValidator(data=request.data)
+        if not cad_validator.is_valid():
+            pass
+        card = cad_validator.validated_data.get('tag_id')
+
+        render_template = render_to_string(
+            'kiosk_pages/show_amount.html', {'card': card}
+        )
+        return JsonResponse({'html': render_template})
 
 
     # On this part we gather the total of amount selected
     @action(detail=False, methods=['POST'])
     def recharge(self,request):
-        selected_data = AmouuntValidator(data=request.data)
+        selected_data = ChargeValidator(data=request.data)
         # If it happens that the uuid or the total is wrong
         if not selected_data.is_valid():
             message = "Error, please try again!"
-
-            return render(request, 'kiosk_pages/first_page.html',
+            print("NOt VAlidddddd: ", selected_data)
+            return render(request, 'kiosk_pages/first_page.html/',
                           {'message':message})
 
+        print("Total and uuid: ", selected_data)
         uuid = selected_data.validated_data.get('uuid')
-        total = selected_data.validated_data.get('total')
+        total = selected_data.validated_data.get('amount')
 
         return render(request,
-        'kiosk_pages/recharge.html',
+        'kiosk_pages/recharge.html/',
         {'total':total, 'uuid': uuid})
 
 
@@ -161,7 +186,7 @@ class CardViewset(viewsets.ViewSet):
                        "and try again!")
 
         return render(request, 'paiment/error_paiment.html',
-                          {'message':message})
+                          {})
 
 
 # This method will recharge paiment page
@@ -173,16 +198,6 @@ def recharge_paiment_pg(request):
     context = {'uuid': uuid, 'total': total,
                'choice_amount': choice_amount, 'devic_amount': devic_amount}
     return render(request, 'paiment/recharge_paiment_pg.html',context=context)
-
-
-# # recharging value
-# def recharge(request):
-#     if request.method == 'POST':
-#         total = request.POST.get('total')
-#         uuid = request.POST.get('uuid')
-#     return render(request,
-#     'kiosk_pages/recharge.html',
-#     {'total':total, 'uuid': uuid})
 
 
 # Stripe ----------------

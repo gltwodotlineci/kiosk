@@ -85,6 +85,7 @@ CORS_ALLOW_HEADERS = (
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:6997",
     "http://127.0.0.2:6997",
+    "http://127.0.0.1:8000"
 ]
 
 ROOT_URLCONF = 'tibillet_kiosk.urls'

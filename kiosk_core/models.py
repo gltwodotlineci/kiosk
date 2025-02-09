@@ -11,7 +11,7 @@ class Card(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     tag_id = models.CharField(max_length=50, unique=True, verbose_name='tag id')
     amount = models.IntegerField(default=0, verbose_name='amount')
-
+    qr_nb = models.CharField(max_length=50, unique=True, verbose_name='Qr code number')
 
 # Model that will save each card reeded by the NFC reeder
 class ReededCardFromNfc(models.Model):
