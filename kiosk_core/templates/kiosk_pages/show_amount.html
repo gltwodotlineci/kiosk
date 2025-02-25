@@ -85,6 +85,8 @@
               <form method="POST" action="http://127.0.0.1:8000/api/card/recharge/" onsubmit="return giveAmount()">
                   <input type="hidden" id="sendAmount" name="amount">
                   <input type="hidden" value="{{ card.uuid }}" name="uuid" id="uuid">
+                  <input type="hidden" value="{{ card.tag_id }}" name="tag_id" id="tag-id">
+
                   <button onclick="validateAmount()" type="submit"
                       class="btn-cbcash z-depth-4 btn-validate waves-effect waves-light"
                   > Confirme <span id="totalAmount">0€</span>

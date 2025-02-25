@@ -1,0 +1,118 @@
+ {% extends 'base/base.html' %}
+{% block content %}
+    
+    {% load static %}
+    <head>
+        <script
+          src="https://kit.fontawesome.com/845b24a10d.js"
+          crossorigin="anonymous"
+        ></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet"
+        />
+        <link
+          href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+          rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../../static/css/main.css" />
+    
+    </head>
+    
+    
+ <main class="container">
+      <div class="main-payement", id="main-payement">
+        <section>
+          <div class="card-panel z-depth-1 blue lighten-5">
+            <span class="dark-text"
+              >You can insert the amount of {{ amount }}€ bills at the device.
+              <span id="paymentMethod"></span>
+            </span>
+          </div>
+          <div class="progressBar">
+            <div class="bar" id="progressBar">
+              <div class="progress-value"></div>
+            </div>
+          </div>
+          <div class="card-panel-currentAmount z-depth-1 blue lighten-5">
+            <span class="dark-text">
+                Actual amount added : 
+                    <span id="currentAmount">0</span>€
+            </span>
+          </div>
+
+          <div class="spinner-box">
+            <div class="spinner" id="spinner"></div>
+          </div>
+            <input type="hidden" id="amount-for-ws" value="{{ amount }}">
+            <input type="hidden" id="uuid-for-ws" value="{{ uuid }}">
+            <input type="hidden" id="choos-pay-for-ws" value="{{ payement_choice_id }}">
+        </section>
+      </div>
+
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="../../static/js/main.js"></script>
+    <script src="../../static/js/cash.js"></script>
+    
+    <script>
+        const socket = new WebSocket('ws://127.0.0.2:8002', 'echo-protocol');
+        const uuid = document.querySelector("#uuid-for-ws").value
+        const amount = document.querySelector("#amount-for-ws").value
+        const payement_choice_id = document.querySelector("#choos-pay-for-ws").value
+
+        let dt = { "amount": amount,"uuid": uuid}
+        const data = { "message": "htmlClient", 'data': dt}
+        socket.onopen = () => {
+            socket.send(JSON.stringify(data))
+            //socket.send(data)
+        }
+
+        let returnMessage;
+        socket.onmessage = async (event) => {
+        const parsedMsg = JSON.parse(event.data);
+        
+        if (parsedMsg.received_bill === "Bill recived") {
+            const send_dt = {
+                'uuid': uuid,
+                'bill': parsedMsg.bill,
+                "amount": amount,
+                "payement_choice_id": payement_choice_id
+            };
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/card/devices_bill/", {
+                    method: "POST",
+                    body: JSON.stringify(send_dt),
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('main-payement').innerHTML = data.html;
+                    if (data.complete === 'yes'){
+                        initializePaymentConfirmation(10000, 'lastPage');
+                    }
+                })
+                
+           
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+        } catch (error) {
+            console.error('Error occurred:', error);
+                }
+            }
+        };
+
+    </script>
+
+{% endblock content %}

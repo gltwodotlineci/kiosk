@@ -63,9 +63,9 @@ document.addEventListener("DOMContentLoaded", function () {
 function updateDarkModeButton() {
   const button = document.getElementById("toggleDarkModeBtn");
   if (document.body.classList.contains("dark-mode")) {
-    button.innerHTML = 'Mode Jour <i class="fas fa-sun"></i>';
+    button.innerHTML = 'LIGHT <i class="fas fa-sun"></i>';
   } else {
-    button.innerHTML = 'Mode Nuit <i class="fas fa-moon"></i>';
+    button.innerHTML = 'DARK <i class="fas fa-moon"></i>';
   }
 }
 
@@ -95,3 +95,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   updateDarkModeButton();
 });
+
+// reloading page after 10 seconds:
+function initializePaymentConfirmation(seconds, pageid) {
+    console.log("SCRIPT STARTED");
+
+    setTimeout(() => {
+        fetch('/')
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById(pageid).innerHTML = html;
+            })
+            .catch(error => console.error('Error:', error));
+    }, seconds);
+    console.log("EXECUTION OF new page ");
+}

@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block content %}
-
+    
+    
     <div id="mainPage1">
         <div id="mainPage2" hx-get="/" hx-trigger="load delay:45s">
             <div class="main-center">
@@ -16,7 +17,8 @@
     </div>
     
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="../../static/js/index.js"></script>    
+<script src="../../static/js/index.js"></script>
+
     
 <script>
     const socket = new WebSocket('ws://localhost:8001/', 'echo-protocol');
@@ -48,6 +50,7 @@
                 .then(response => response.json())
                 .then(data3 => {
                     document.getElementById('mainPage1').innerHTML = data3.html;
+                    initializePaymentConfirmation(15000,"errorPage");
                 })
         }
         
@@ -57,13 +60,7 @@
     }
 };
 
-// function send_nfc(){
-//     document.getElementById('tagid').addEventListener('input', function(e) {
-//     const nfc_nb = e.target.value;
-//     socket.send(nfc_nb)
-//     console.log("Nfc nb", nfc_nb);
-// });
-// }
+
 </script>
     
 

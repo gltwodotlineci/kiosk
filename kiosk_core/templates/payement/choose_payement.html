@@ -1,0 +1,91 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/845b24a10d.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../static/css/main.css" />
+    <title>Kiosk</title>
+  </head>
+  <body>
+    <main class="container" id="choose-pg">
+      <div class="main-center">
+        <section>
+          <div class="card-panel z-depth-1 blue lighten-5">
+              <h4> You have choosed {{ amount }} euros</h4>
+            <span class="dark-text">Choose your means of payment ! </span>
+          </div>
+          <div class="row">
+            <div class="col s12 m6" id="payement-cb">
+                    <input type="hidden" name="amount", value="{{amount}}">
+                    <input type="hidden" name="uuid", value="{{uuid}}">
+                    <input type="hidden" name="type_payement", value="cb">
+                    <input type="hidden" name="payement_choice_id", value="{{payement_choice_id}}">
+
+              <button
+                class="btn-cbcash z-depth-4 waves-effect waves-light white-text"
+                        hx-post="http://127.0.0.1:8000/api/card/payement/"
+                        hx-include="#payement-cb"
+                        hx-trigger="click"
+                        hx-target="#choose-pg"
+              >
+                <i class="fa-regular fa-credit-card"></i>
+                Credit Card
+              </button>
+            </div>
+            <div class="col s12 m6" id="payement-cash">
+                    <input type="hidden" name="amount", value="{{amount}}">
+                    <input type="hidden" name="uuid", value="{{uuid}}">
+                    <input type="hidden" name="type_payement", value="cash">
+                    <input type="hidden" name="payement_choice_id", value="{{payement_choice_id}}">
+                  <button
+                    class="btn-cbcash z-depth-4 waves-effect waves-light white-text"
+                        hx-post="http://127.0.0.1:8000/api/card/payement/"
+                        hx-include="#payement-cash"
+                        hx-trigger="click"
+                        hx-target="#choose-pg"
+                  >
+                    <i class="fa-solid fa-coins"></i>
+                    Cash
+                  </button>
+                </div>
+          </div>
+        </section>
+      </div>
+      <div id="id-amount">
+          <input type="hidden" id="tag-id-return" value="{{ tag_id }}" name="tag_id"/>
+           <button
+              class="btn-back btn-floating waves-effect waves-light"
+               hx-post="http://127.0.0.1:8000/api/card/back_amount/"
+               hx-include="#id-amount"
+               hx-trigger="click"
+               hx-target="#choose-pg"
+            >
+              <i class="material-icons">arrow_back</i>
+              Prevews Page
+            </button>
+      </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="../../static/js/main.js"></script>
+
+  {% endblock %}

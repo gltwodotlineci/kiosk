@@ -1,21 +1,22 @@
 import json
 from crypt import methods
 from http.client import responses
+from pickle import FALSE
 
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django_browser_reload.views import message
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from kiosk_core.serializers import AmouuntValidator, BillValidator
-from kiosk_core.validator import TagIdValidator, CardValidator, ChargeValidator
+from kiosk_core.serializers import BillValidator
+from kiosk_core.validator import (TagIdValidator, CardValidator, ChargeValidator,
+        AmouuntValidator, BillValidator)
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from kiosk_core.models import Card, ReededCardFromNfc, PaimentChoice
 from django.http import JsonResponse
 from django.utils import timezone
-
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -26,7 +27,6 @@ def home(request):
 
 # First page and the recharge of the first page if no card has been scanned
 def scan_page(request):
-
     return render(request, 'kiosk_pages/scan_page.html')
 
 
@@ -35,18 +35,7 @@ def error_scan(request):
     render_template = render_to_string(
             'kiosk_pages/card_error.html'
     )
-    return JsonResponse({'html': render_template})
-
-
-@csrf_exempt
-def given_bill(request):
-    print('____________________')
-    if request.method == 'POST':
-        given_bill = request.POST.get('bill')
-
-    print("Given Bill: ", given_bill)
-
-    return HttpResponse(given_bill)
+    return JsonResponse({'html': render_template, 'error': 'yes'})
 
 
 class CardViewset(viewsets.ViewSet):
@@ -99,18 +88,27 @@ class CardViewset(viewsets.ViewSet):
             return render(request, 'kiosk_pages/first_page.html/',
                           {'message':message})
 
-        print("Total and uuid: ", selected_data)
         uuid = selected_data.validated_data.get('uuid')
-        total = selected_data.validated_data.get('amount')
+        amount = selected_data.validated_data.get('amount')
+        tag_id = selected_data.validated_data.get('tag_id')
+        card = Card.objects.get(uuid=uuid)
+        payement_choice = PaimentChoice(card_uuid = card, choice_amount = amount)
+        payement_choice.save()
+        payement_choice_id = payement_choice.pk
 
         return render(request,
-        'kiosk_pages/recharge.html/',
-        {'total':total, 'uuid': uuid})
+                      'payement/choose_payement.html/',
+                      {'amount':amount,
+                               'uuid': uuid,
+                               'tag_id': tag_id,
+                               'payement_choice_id': payement_choice_id
+                            })
 
 
-    # post from paiment
+    # post from payement
     @action(detail=False, methods=['POST'])
-    def paiment(self, request):
+    def payement(self, request):
+
         choosed_data = AmouuntValidator(data=request.data)
         # check if the datas are well selected
         if not choosed_data.is_valid():
@@ -118,28 +116,71 @@ class CardViewset(viewsets.ViewSet):
             "Wrong selection, please try again")
             return HttpResponseRedirect('/')
         uuid = choosed_data.validated_data.get('uuid')
-        total = choosed_data.validated_data.get('total')
-        card = Card.objects.get(uuid=uuid)
-        paiment_choice = PaimentChoice.objects.create(choice_amount=total,card_uuid=card)
-        context = {'uuid': uuid, 'total': total, 'paiment_choice': paiment_choice}
-        return render(request, 'paiment/paiement.html', context=context)
+        amount = choosed_data.validated_data.get('amount')
+        type_payement = choosed_data.validated_data.get('type_payement')
+        payement_choice_id = choosed_data.validated_data.get('payement_choice_id')
+
+        context = {'uuid': uuid,
+                   'amount': amount,
+                   #'paiement_choice': type_payement,
+                   'payement_choice_id': payement_choice_id
+                   }
+
+        # Send to cash payement page
+        if type_payement == "cash":
+            return render(request, 'payement/payement.html', context=context)
+
+        # Send to CB payement page
+        return render(request, 'payement/payement_cb.html', context=context)
 
 
     # Amoount of bills recived from the device
     @action(detail=False, methods=['POST'])
     def devices_bill(self,request):
-        paiment_choice = PaimentChoice.objects.all().order_by('created_at').last()
-        bill_data = BillValidator(data=request.data)
-        if not bill_data.is_valid():
-            message = ("Sorry error device, please take your bill from the device "
-                       "and, restart again please")
-            return render(request, 'kiosk_pages/first_page.html'
-                          ,{'message':message},)
+        # parse the json data from JS fetch
+        data = json.loads(request.body)
+        data_bill =  BillValidator(data=data)
+        if not data_bill.is_valid():
+            print("NOt valid bill")
+            return HttpResponseRedirect('/')
 
-        amount_device = bill_data.validated_data.get('bill')
-        paiment_choice.device_amount += amount_device
-        paiment_choice.save()
-        return HttpResponse(paiment_choice)
+        bill = data_bill.validated_data.get('bill')
+        uuid = data_bill.validated_data.get('uuid')
+        amount = data_bill.validated_data.get('amount')
+        choosed_payement = data_bill.validated_data.get('payement_choice_id')
+
+        payement_choice = PaimentChoice.objects.get(uuid=choosed_payement)
+        payement_choice.device_amount += bill
+        payement_choice.calcule_amount_diff()
+        rest = payement_choice.rest
+        card = Card.objects.get(uuid=uuid)
+        card.amount += payement_choice.choice_amount
+        payement_choice.save()
+        card.save()
+
+        # New page with the confirmation of charging!
+        if rest > 0:
+            render_template = render_to_string('payement/confirmation_paiement.html',
+                          {'amount': card.amount, 'rest':rest, 'complete': 'yes'}
+                          )
+            return JsonResponse({'html': render_template, 'complete': 'yes'})
+
+        render_same_template = render_to_string('payement/payement.html',
+                                {'uuid': card.pk,
+                                'amount': card.amount,
+                                 'payement_choice_id': payement_choice.pk
+                                 })
+        return JsonResponse({'html': render_same_template, 'complete': 'no'})
+
+
+    @action(detail=False, methods=['POST'])
+    def back_amount(self, request):
+        return_pg_validator = CardValidator(data=request.data)
+        if not return_pg_validator.is_valid():
+            pass
+        card = return_pg_validator.validated_data.get('tag_id')
+
+        return render(request, 'kiosk_pages/show_amount.html', {'card': card})
 
 
     @action(detail=False, methods=['GET'])
@@ -154,14 +195,14 @@ class CardViewset(viewsets.ViewSet):
                 rest_device = True
                 rest = paiment_choice.device_amount - paiment_choice.choice_amount
             return render(request,
-            'paiment/device_bills.html',
-            {'paiment_complete': paiment_complete,
+                          'payement/device_bills.html',
+                          {'paiment_complete': paiment_complete,
              'rest_device': rest_device, 'rest': rest})
         return render(request,
-        'paiment/device_bills.html',
-    {'paiment_choice': paiment_choice, 'rest': rest})
+                      'payement/device_bills.html',
+                      {'paiment_choice': paiment_choice, 'rest': rest})
 
-
+"""
     @action(detail=False, methods=['POST'])
     def confirmation_paiment(self, request):
         confirmation_data = AmouuntValidator(data=request.data)
@@ -170,7 +211,7 @@ class CardViewset(viewsets.ViewSet):
             message = ("Error, of payment, please take the money from the device"
                        "and try again!")
 
-            return render(request, 'paiment/error_paiment.html',
+            return render(request, 'payement/error_paiment.html',
                           {'message':message})
 
         uuid = confirmation_data.validated_data.get('uuid')
@@ -180,16 +221,15 @@ class CardViewset(viewsets.ViewSet):
             card = Card.objects.get(uuid=uuid)
             card.amount += int(total)
             card.save()
-            return render(request, 'paiment/confirmation_paiement.html',{'card': card})
+            return render(request, 'payement/confirmation_paiement.html', {'card': card})
 
         message = ("Error, of payment, please take the money from the device"
                        "and try again!")
 
-        return render(request, 'paiment/error_paiment.html',
-                          {})
+        return request(request, 'payement/error_paiment.html', {})
+"""
 
-
-# This method will recharge paiment page
+# This method will recharge payement page
 def recharge_paiment_pg(request):
     uuid = request.POST.get('uuid')
     total = request.POST.get('total')
@@ -197,11 +237,11 @@ def recharge_paiment_pg(request):
     devic_amount = request.POST.get('devic_amount')
     context = {'uuid': uuid, 'total': total,
                'choice_amount': choice_amount, 'devic_amount': devic_amount}
-    return render(request, 'paiment/recharge_paiment_pg.html',context=context)
+    return render(request, 'payement/recharge_paiment_pg.html', context=context)
 
 
 # Stripe ----------------
 def stripe_paiment(request):
-    return render(request, 'paiment/stripe_paiment.html')
+    return render(request, 'payement/stripe_paiment.html')
 
 
