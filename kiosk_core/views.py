@@ -62,19 +62,19 @@ class CardViewset(viewsets.ViewSet):
         response['tag_id'] = tag_id
         return HttpResponse(json.dumps(response))
 
-
     # sending to charging card page
     @action(detail=False, methods=['POST'])
     def charg_card(self, request):
-        cad_validator = CardValidator(data=request.data)
-        if not cad_validator.is_valid():
+        card_validator = CardValidator(data=request.data)
+        if not card_validator.is_valid():
             pass
-        card = cad_validator.validated_data.get('tag_id')
+        card = card_validator.validated_data.get('tag_id')
 
         render_template = render_to_string(
             'kiosk_pages/show_amount.html', {'card': card}
         )
         return JsonResponse({'html': render_template})
+
 
 
     # On this part we gather the total of amount selected
@@ -145,30 +145,36 @@ class CardViewset(viewsets.ViewSet):
             return HttpResponseRedirect('/')
 
         bill = data_bill.validated_data.get('bill')
+        print("Bill Before, --- ", bill)
         uuid = data_bill.validated_data.get('uuid')
         amount = data_bill.validated_data.get('amount')
         choosed_payement = data_bill.validated_data.get('payement_choice_id')
 
         payement_choice = PaimentChoice.objects.get(uuid=choosed_payement)
         payement_choice.device_amount += bill
-        payement_choice.calcule_amount_diff()
-        rest = payement_choice.rest
+
+        payement_choice.rest = payement_choice.device_amount - payement_choice.choice_amount
         card = Card.objects.get(uuid=uuid)
-        card.amount += payement_choice.choice_amount
+
         payement_choice.save()
-        card.save()
+        data = None
 
         # New page with the confirmation of charging!
-        if rest > 0:
+        if payement_choice.rest >= 0:
+            card.amount += payement_choice.choice_amount
+            card.save()
             render_template = render_to_string('payement/confirmation_paiement.html',
-                          {'amount': card.amount, 'rest':rest, 'complete': 'yes'}
+                          {'amount': card.amount,
+                                'rest': payement_choice.rest,
+                                'complete': 'yes'}
                           )
             return JsonResponse({'html': render_template, 'complete': 'yes'})
 
         render_same_template = render_to_string('payement/payement.html',
                                 {'uuid': card.pk,
-                                'amount': card.amount,
-                                 'payement_choice_id': payement_choice.pk
+                                'amount': amount,
+                                 'payement_choice_id': payement_choice.pk,
+                                 'given_bill': payement_choice.device_amount
                                  })
         return JsonResponse({'html': render_same_template, 'complete': 'no'})
 
@@ -198,46 +204,8 @@ class CardViewset(viewsets.ViewSet):
                           'payement/device_bills.html',
                           {'paiment_complete': paiment_complete,
              'rest_device': rest_device, 'rest': rest})
-        return render(request,
-                      'payement/device_bills.html',
-                      {'paiment_choice': paiment_choice, 'rest': rest})
 
-"""
-    @action(detail=False, methods=['POST'])
-    def confirmation_paiment(self, request):
-        confirmation_data = AmouuntValidator(data=request.data)
-        # check if the datas are well selected
-        if not confirmation_data.is_valid():
-            message = ("Error, of payment, please take the money from the device"
-                       "and try again!")
-
-            return render(request, 'payement/error_paiment.html',
-                          {'message':message})
-
-        uuid = confirmation_data.validated_data.get('uuid')
-        total = confirmation_data.validated_data.get('total')
-        device_confirm_paiment = confirmation_data.validated_data.get('device_confirm_paiment')
-        if device_confirm_paiment != None:
-            card = Card.objects.get(uuid=uuid)
-            card.amount += int(total)
-            card.save()
-            return render(request, 'payement/confirmation_paiement.html', {'card': card})
-
-        message = ("Error, of payment, please take the money from the device"
-                       "and try again!")
-
-        return request(request, 'payement/error_paiment.html', {})
-"""
-
-# This method will recharge payement page
-def recharge_paiment_pg(request):
-    uuid = request.POST.get('uuid')
-    total = request.POST.get('total')
-    choice_amount = request.POST.get('choice_amount')
-    devic_amount = request.POST.get('devic_amount')
-    context = {'uuid': uuid, 'total': total,
-               'choice_amount': choice_amount, 'devic_amount': devic_amount}
-    return render(request, 'payement/recharge_paiment_pg.html', context=context)
+        return render(request, 'payement/device_bills.html',{'paiment_choice': paiment_choice, 'rest': rest})
 
 
 # Stripe ----------------

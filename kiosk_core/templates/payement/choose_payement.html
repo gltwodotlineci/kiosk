@@ -28,7 +28,11 @@
   </head>
   <body>
     <main class="container" id="choose-pg">
-      <div class="main-center">
+      <div class="main-center"
+            hx-get="/"
+           hx-target="#choose-pg"
+            hx-trigger="load delay:45s"
+      >
         <section>
           <div class="card-panel z-depth-1 blue lighten-5">
               <h4> You have choosed {{ amount }} euros</h4>

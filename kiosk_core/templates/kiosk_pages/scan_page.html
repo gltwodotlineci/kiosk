@@ -44,6 +44,7 @@
                 .then(response => response.json())
                 .then(data2 => {
                     document.getElementById('mainPage1').innerHTML = data2.html;
+                    initializePaymentConfirmation(45000, 'rechargePg');
                 })
             } else if (data.message === 'NotFound') {
             fetch("http://127.0.0.1:8000/error_scan")
