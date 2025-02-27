@@ -212,5 +212,3 @@ class CardViewset(viewsets.ViewSet):
 # Stripe ----------------
 def stripe_paiment(request):
     return render(request, 'payement/stripe_paiment.html')
-
-
