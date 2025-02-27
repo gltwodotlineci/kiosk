@@ -179,6 +179,7 @@ class CardViewset(viewsets.ViewSet):
         return JsonResponse({'html': render_same_template, 'complete': 'no'})
 
 
+
     @action(detail=False, methods=['POST'])
     def back_amount(self, request):
         return_pg_validator = CardValidator(data=request.data)

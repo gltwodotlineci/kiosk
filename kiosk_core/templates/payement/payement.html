@@ -1,4 +1,4 @@
- {% extends 'base/base.html' %}
+{% extends 'base/base.html' %}
 {% block content %}
     
     {% load static %}
@@ -45,56 +45,74 @@
 
     
     <script>
-        const socket = new WebSocket('ws://127.0.0.2:8002', 'echo-protocol');
-        const uuid = document.querySelector("#uuid-for-ws").value
-        const amount = document.querySelector("#amount-for-ws").value
-        const payement_choice_id = document.querySelector("#choos-pay-for-ws").value
+   let socket;
 
-        let dt = { "amount": amount,"uuid": uuid}
-        const data = { "message": "htmlClient", 'data': dt}
-        socket.onopen = () => {
-            socket.send(JSON.stringify(data))
-            //socket.send(data)
-        }
+function connectWebSocket() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log("WebSocket already connected");
+        return;
+    }
 
-        // let returnMessage;
-        socket.onmessage = async (event) => {
+    socket = new WebSocket('ws://127.0.0.2:8002', 'echo-protocol');
+    console.log("WebSocket connecting...");
+
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+        const uuid = document.querySelector("#uuid-for-ws").value;
+        const amount = document.querySelector("#amount-for-ws").value;
+        const dt = { "amount": amount, "uuid": uuid };
+        const data = { "message": "htmlClient", 'data': dt };
+        socket.send(JSON.stringify(data));
+    };
+
+    socket.onmessage = async (event) => {
+        console.log("Message received: ", event.data);
         const parsedMsg = JSON.parse(event.data);
-        
+
         if (parsedMsg.received_bill === "Bill recived") {
+            const uuid = document.querySelector("#uuid-for-ws").value;
+            const amount = document.querySelector("#amount-for-ws").value;
+            const payement_choice_id = document.querySelector("#choos-pay-for-ws").value;
+
             const send_dt = {
                 'uuid': uuid,
                 'bill': parsedMsg.bill,
                 "amount": amount,
                 "payement_choice_id": payement_choice_id
             };
+
             try {
                 const response = await fetch("http://127.0.0.1:8000/api/card/devices_bill/", {
                     method: "POST",
                     body: JSON.stringify(send_dt),
-                    headers: {
-                        "Content-type": "application/json; charset=UTF-8"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('main-payement').innerHTML = data.html;
-                    if (data.complete === 'yes'){
-                        initializePaymentConfirmation(10000, 'lastPage');
-                    }
-                })
-                
-           
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-        } catch (error) {
-            console.error('Error occurred:', error);
+                    headers: { "Content-type": "application/json; charset=UTF-8" }
+                });
+
+                const data = await response.json();
+                document.getElementById('main-payement').innerHTML = data.html;
+                if (data.complete === 'yes') {
+                    initializePaymentConfirmation(10000, 'lastPage');
                 }
+            } catch (error) {
+                console.error('Error occurred:', error);
             }
-        };
+        }
+    };
+
+    socket.onclose = () => {
+        console.log("WebSocket disconnected. Reconnecting...");
+        setTimeout(connectWebSocket, 5000); 
+    };
+
+    socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        socket.close();
+    };
+}
+
+// Call the function to start WebSocket connection
+connectWebSocket();
+
 
     </script>
 
