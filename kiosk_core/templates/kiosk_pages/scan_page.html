@@ -21,18 +21,20 @@
 
     
 <script>
-    const socket = new WebSocket('ws://localhost:8001/', 'echo-protocol');
+    const ipLocation = location.hostname
+    var socket = new WebSocket('ws://localhost:8002/'); // instead of localhost
     socket.onopen = () => {
-        console.log("Connection OK...")
-        socket.send("reed_tag_id")
-    }
+        console.log("Connection OK...");
+        socket.send("reed_tag_id");
+    };
+    
     socket.onmessage = function(event) {
     try {
         // Convert the incoming message to JSON if needed
         const data = JSON.parse(event.data);
         if (data.message === 'Found'){
             // posting tag_id to recharge page
-            fetch("http://127.0.0.1:8000/api/card/charg_card/", {
+            fetch("http://glencho.casacam.net:57347/api/card/charg_card/", {
                 method: "POST",
                 body: JSON.stringify({
                     tag_id: data.tag_id
@@ -47,7 +49,7 @@
                     initializePaymentConfirmation(45000, 'rechargePg');
                 })
             } else if (data.message === 'NotFound') {
-            fetch("http://127.0.0.1:8000/error_scan")
+            fetch("http://glencho.casacam.net:57347/error_scan")
                 .then(response => response.json())
                 .then(data3 => {
                     document.getElementById('mainPage1').innerHTML = data3.html;
@@ -59,6 +61,11 @@
         console.error('Error parsing message:', error);
         console.log('Raw message:', event.data);
     }
+    socket.onclose = (event) => {
+        console.warn("WebSocket closed unexpectedly:", event);
+        // Reconnect if needed
+        reconnect();
+};
 };
 
 
