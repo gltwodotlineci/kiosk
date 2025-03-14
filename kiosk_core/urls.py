@@ -13,8 +13,5 @@ urlpatterns = [
 
     path('error_scan', error_scan, name='error_scan'),
     path('api/', include(router.urls)),
-    # path('recharge_paiment_pg/', recharge_paiment_pg, name='recharge_paiment_pg'),
-    # path('given_bill/', given_bill, name='given_bill'),
-    # path('recharge/', recharge, name='recharge'),
     path('stripe_paiment/', stripe_paiment, name='stripe_paiment'),
 ]

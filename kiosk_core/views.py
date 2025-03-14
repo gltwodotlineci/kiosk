@@ -39,13 +39,6 @@ def error_scan(request):
 
 
 class CardViewset(viewsets.ViewSet):
-    # save scanded card:
-    @action(detail=False, methods=['POST'])
-    def save_scanded_card(self, request):
-        scanned_card_id = request.POST.get('scanded_tag_id')
-        ReededCardFromNfc.objects.create(reeded_card=scanned_card_id)
-        return HttpResponse(scanned_card_id)
-
 
     # post from card scan
     @action(detail=False, methods=['POST'])
@@ -108,7 +101,7 @@ class CardViewset(viewsets.ViewSet):
     # post from payement
     @action(detail=False, methods=['POST'])
     def payement(self, request):
-
+        # Validating the data from choosed amount
         choosed_data = AmouuntValidator(data=request.data)
         # check if the datas are well selected
         if not choosed_data.is_valid():
@@ -139,13 +132,14 @@ class CardViewset(viewsets.ViewSet):
     def devices_bill(self,request):
         # parse the json data from JS fetch
         data = json.loads(request.body)
+        # Validating bill data
         data_bill =  BillValidator(data=data)
         if not data_bill.is_valid():
             print("NOt valid bill")
             return HttpResponseRedirect('/')
 
+        # Reciving the data
         bill = data_bill.validated_data.get('bill')
-        print("Bill Before, --- ", bill)
         uuid = data_bill.validated_data.get('uuid')
         amount = data_bill.validated_data.get('amount')
         choosed_payement = data_bill.validated_data.get('payement_choice_id')
@@ -163,6 +157,7 @@ class CardViewset(viewsets.ViewSet):
         if payement_choice.rest >= 0:
             card.amount += payement_choice.choice_amount
             card.save()
+            # return confirmation page to JS fetch
             render_template = render_to_string('payement/confirmation_paiement.html',
                           {'amount': card.amount,
                                 'rest': payement_choice.rest,
@@ -170,6 +165,8 @@ class CardViewset(viewsets.ViewSet):
                           )
             return JsonResponse({'html': render_template, 'complete': 'yes'})
 
+        # return the same page to JS fetch, but with new data
+        # The choosed sum is not completed jet
         render_same_template = render_to_string('payement/payement.html',
                                 {'uuid': card.pk,
                                 'amount': amount,
@@ -177,37 +174,6 @@ class CardViewset(viewsets.ViewSet):
                                  'given_bill': payement_choice.device_amount
                                  })
         return JsonResponse({'html': render_same_template, 'complete': 'no'})
-
-
-
-
-    @action(detail=False, methods=['POST'])
-    def back_amount(self, request):
-        return_pg_validator = CardValidator(data=request.data)
-        if not return_pg_validator.is_valid():
-            pass
-        card = return_pg_validator.validated_data.get('tag_id')
-
-        return render(request, 'kiosk_pages/show_amount.html', {'card': card})
-
-
-    @action(detail=False, methods=['GET'])
-    def return_device(self,request):
-        paiment_complete = False
-        paiment_choice = PaimentChoice.objects.all().order_by('created_at').last()
-        rest = paiment_choice.choice_amount - paiment_choice.device_amount
-        if rest <= 0:
-            paiment_complete = True
-            rest_device = False
-            if rest < 0:
-                rest_device = True
-                rest = paiment_choice.device_amount - paiment_choice.choice_amount
-            return render(request,
-                          'payement/device_bills.html',
-                          {'paiment_complete': paiment_complete,
-             'rest_device': rest_device, 'rest': rest})
-
-        return render(request, 'payement/device_bills.html',{'paiment_choice': paiment_choice, 'rest': rest})
 
 
 # Stripe ----------------
