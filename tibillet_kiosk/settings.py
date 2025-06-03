@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'solo',
     'django_extensions',
     'rest_framework',
+    'rest_framework.authtoken',
     'stdimage',
     'django_htmx',
 ]
@@ -139,6 +140,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = 'kiosk_core.CustomUser'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

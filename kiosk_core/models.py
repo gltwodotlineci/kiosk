@@ -1,10 +1,23 @@
+import secrets
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from uuid import uuid4
 
 class CustomUser(AbstractUser):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     email = models.EmailField(max_length=100, unique=True, verbose_name='Email')
+
+
+class DeviceTokenAuthentication(models.Model):
+    key = models.CharField(max_length=64, unique=True, default=secrets.token_hex)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    device_name = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.device_name or 'Unnamed'} ({self.key})"
 
 # Creating a card model
 class Card(models.Model):
