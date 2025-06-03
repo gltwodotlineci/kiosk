@@ -16,18 +16,23 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from kiosk_core.models import Card, ReededCardFromNfc, PaimentChoice
 from django.http import JsonResponse
+import os
 from django.utils import timezone
 
 from django.views.decorators.csrf import csrf_exempt
 
 
 def home(request):
-    return  render(request, 'kiosk_pages/home.html', {})
+
+    return  render(request, 'kiosk_pages/home.html')
 
 
 # First page and the recharge of the first page if no card has been scanned
 def scan_page(request):
-    return render(request, 'kiosk_pages/scan_page.html')
+    context  = {'ip_nav_deported':os.environ.get('IP_NAV_DEPORTED'),
+                'used_ip_deported': os.environ.get('USED_IP_NAV_DEPORTED')
+                }
+    return render(request, 'kiosk_pages/scan_page.html', context)
 
 
 # If wrong card scaned
@@ -72,7 +77,7 @@ class CardViewset(viewsets.ViewSet):
 
     # On this part we gather the total of amount selected
     @action(detail=False, methods=['POST'])
-    def recharge(self,request):
+        def recharge(self,request):
         selected_data = ChargeValidator(data=request.data)
         # If it happens that the uuid or the total is wrong
         if not selected_data.is_valid():

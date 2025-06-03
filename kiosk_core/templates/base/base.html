@@ -9,12 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../static/css/main.css" />
     <title>Cashless kiosk</title>
 
 </head>
 
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<script>
+    const navDeport = {
+        ip: "{{ ip_nav_deported }}",
+        used: {{ used_ip_deported }}
+    }
+    
+</script>
 <header>
         <div class="logo-header blue lighten-3">logo Tibillet</div>
         <button
@@ -62,6 +68,7 @@
 <!-- Bootstrap JS, Popper.js, and jQuery -->
 <script src="{% static 'js/hyperscript.0.9.12.min.js' %}" type="application/javascript"></script>
 <script src="{% static 'js/main.js' %}" type="application/javascript"></script>
+<script src="{% static 'js/index.js' %}" type="application/javascript"></script>
 <script src="{% static 'js/htmx.min.js' %}" type="application/javascript"></script>
 <script src="{% static 'bootstrap/bootstrap.5.2.3.bundle.min.js' %}" type="application/javascript"></script>
 
