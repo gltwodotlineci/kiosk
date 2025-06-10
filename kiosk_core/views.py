@@ -77,7 +77,7 @@ class CardViewset(viewsets.ViewSet):
 
     # On this part we gather the total of amount selected
     @action(detail=False, methods=['POST'])
-        def recharge(self,request):
+    def recharge(self,request):
         selected_data = ChargeValidator(data=request.data)
         # If it happens that the uuid or the total is wrong
         if not selected_data.is_valid():
