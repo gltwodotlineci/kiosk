@@ -73,6 +73,7 @@ function connectWebSocket() {
     socket.onmessage = async (event) => {
         try {
             const parsedMsg = JSON.parse(event.data);
+            const token_key = parsedMsg.token_key
             console.log("MSG received: ", parsedMsg.received_bill)
             
             if (parsedMsg.received_bill === "Bill recived") {
@@ -92,7 +93,8 @@ function connectWebSocket() {
                         method: "POST",
                         body: JSON.stringify(send_dt),
                         headers: { 
-                            "Content-type": "application/json; charset=UTF-8"
+                            "Content-type": "application/json; charset=UTF-8",
+                            "Authorization": `Bearer ${token_key}`
                         }
                     });
                     
