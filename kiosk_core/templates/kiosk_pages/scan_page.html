@@ -22,9 +22,10 @@
 <script>
     const ipLocation = location.hostname
     let url = 'ws://localhost:8002/'
+    /*
     if (navDeport.used === 1){
         url = `ws://${navDeport.ip}:8002/`
-    }
+    }*/
     const socket = new WebSocket(url); // instead of localhost
     // const socket = new WebSocket("ws://127.0.0.1:8002/")
     socket.onopen = () => {

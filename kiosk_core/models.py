@@ -19,6 +19,7 @@ class DeviceTokenAuthentication(models.Model):
     def __str__(self):
         return f"{self.device_name or 'Unnamed'} ({self.key})"
 
+
 # Creating a card model
 class Card(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)

@@ -7,7 +7,9 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django_browser_reload.views import message
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes
+from rest_framework.permissions import AllowAny
+
 from kiosk_core.serializers import BillValidator
 from kiosk_core.validator import (TagIdValidator, CardValidator, ChargeValidator,
         AmouuntValidator, BillValidator)
@@ -16,6 +18,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
 from kiosk_core.models import Card, ReededCardFromNfc, PaimentChoice
 from django.http import JsonResponse
+from .authentication import CustomTokenAuthentication
 import os
 from django.utils import timezone
 
@@ -44,6 +47,7 @@ def error_scan(request):
 
 
 class CardViewset(viewsets.ViewSet):
+    authentication_classes = [CustomTokenAuthentication]
 
     # post from card scan
     @action(detail=False, methods=['POST'])
